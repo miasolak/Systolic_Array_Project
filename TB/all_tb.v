@@ -10,14 +10,19 @@ module all_tb;
     reg [N*DATA_WIDTH-1:0] a_i;     //sadrzi 3 registra u sebi kao 1 vektor
     reg [M*DATA_WIDTH-1:0] b_i;      
     reg [M*DATA_WIDTH-1:0] c_i;     
-    wire [M*DATA_WIDTH-1:0] add_o;
+    wire [M*DATA_WIDTH-1:0] add_o; // wire jer ga ne menjas u alwaysu - PROVERI - //sadrzi 3 registra u sebi kao 1 vektor
 
     reg [31:0] a_array [0:M-1][0:N-1]; // M setova po N elemenata
     reg [31:0] b_array [0:N-1][0:M-1]; // N setova po M elemenata
-    reg [31:0] c_array [0:M-1];
+    reg [M*DATA_WIDTH-1:0] c_vector;        // vektor
 
     integer counter1;
     integer counter2;
+    
+    reg [N*DATA_WIDTH-1:0] temp_a;
+    reg [M*DATA_WIDTH-1:0] temp_b;
+    
+    integer done = 0;
     
     // Instanca top modula
     all #(M, N, DATA_WIDTH) dut (
@@ -58,30 +63,22 @@ module all_tb;
         end
         
          for (i = 0; i < M; i = i + 1) begin
-     //    #10
                 for (j = 0; j < N; j = j + 1) begin
                     // A: učitavanje i pakovanje
                     $fscanf(a_file, "%d\n", a_val);
-                    a_array[i][j] = a_val;              //a_array[0][0] = 10, a_array[0][1] = 11, a_array[0][2] = 12
+                    a_array[i][j] = a_val;              //a_array[0][0] = 3, a_array[1][0] = 6, a_array[2][0] = 9
             
                     $fscanf(b_file, "%d\n", b_val);
-                    b_array[j][i] = b_val;
+                    b_array[i][j] = b_val;
                 end
-//                 Pakovanje A vektora
-//                for (k = 0; k < N; k = k + 1) begin: blabla
-//                    a_i[(k+1)*DATA_WIDTH - 1 : k*DATA_WIDTH] = a_array[i][k];   //a_i = 101112
-//                end
-               
-//                 Pakovanje B vektora
-//                for (k = 0; k < M; k = k + 1) begin
-//                    b_i[(k+1)*DATA_WIDTH - 1 : k*DATA_WIDTH] = b_array[i][k]; //buni se verilog za k?! - k must be rounded by constant expression
-//                end
          end
-
+        
+        c_vector = 0;
             for (j = 0; j < M; j = j + 1) begin
                  $fscanf(c_file, "%d\n", c_val);
-                 c_array[j] = c_val;
-                // c_i[(j+1)*DATA_WIDTH - 1 : j*DATA_WIDTH] = c_val; verilog se bunio kad mu granice nisu odredjene za j?!
+                 //c_vector = (c_val << (DATA_WIDTH * (M - 1 - j))) | c_vector;
+                 c_vector = c_vector | (c_val << (DATA_WIDTH * j));
+                 //c_vector = (c_vector << DATA_WIDTH) | c_val;
             end
                    
         $fclose(a_file);
@@ -89,28 +86,7 @@ module all_tb;
         $fclose(c_file);
         
     end
-//        // ⏱️ CEKANJE 4 TAKTA
-//    #40;
 
-//    // 🔍 PROVERA — UNESI Tvoje očekivane vrednosti OVDE:
-//    if (add_0_o === c_0_i) $display("PASS add_0_o tacan za iteraciju %0d: %d", i/3, add_0_o);
-//    else $display("FAIL add_0_o netacan za iteraciju %0d: %d", i/3, add_0_o);
-
-//    if (add_1_o === c_1_i) $display("PASS add_1_o tacan za iteraciju %0d: %d", i/3, add_1_o);
-//    else $display("FAIL add_1_o netacan za iteraciju %0d: %d", i/3, add_1_o);
-
-//    if (add_2_o === c_2_i) $display("PASS add_2_o tacan za iteraciju %0d: %d", i/3, add_2_o);
-//    else $display("FAIL add_2_o netacan za iteraciju %0d: %d", i/3, add_2_o);
-    
-//    $fclose(c_file);
-
-//        // 🕒 Pauza za propagaciju
-//        #200;
-
-//        $display("=== SIMULACIJA GOTOVA sad ===");
-//        $finish;
-
-    
     always @(posedge clk_i or negedge reset_i) begin
         if (!reset_i) begin
             a_i <= 0;
@@ -120,32 +96,55 @@ module all_tb;
             counter2 <= 0;
 
         end else begin 
-            if (counter1 < M) begin 
-                for (k = 0; k < N; k = k + 1) begin
-                    a_i[(k+1)*DATA_WIDTH - 1 : k*DATA_WIDTH] <= a_array[counter1][k];   //a_i = 101112
-                end
+               if (counter1 < M) begin
+                temp_a = 0;
+                    for (k = 0; k < N; k = k + 1) begin
+                        temp_a = (temp_a << DATA_WIDTH) | a_array[counter1][N - 1 - k];
+                        //temp_a = (temp_a << DATA_WIDTH) | a_array[counter1][k];     //FOR ODJEDNOM (non-blocking) !!!
+                    end
+                a_i <= temp_a;
+          //  counter1 <= counter1 + 1;                                           //BROJAC NA CLOCK (blocking) !!!
             end
-            
+            counter1 <= counter1 + 1;
             if (counter2 < N) begin
+                temp_b = 0;
                 for (k = 0; k < M; k = k + 1) begin
-                    b_i[(k+1)*DATA_WIDTH - 1 : k*DATA_WIDTH] <= b_array[k][counter2];
+                    temp_b = (temp_b << DATA_WIDTH) | b_array[counter2][N - 1 - k];
+                    //temp_b = (temp_b << DATA_WIDTH) | b_array[counter2][k];
+                end
+                b_i <= temp_b;
+//                counter2 <= counter2 + 1;
+            end
+            counter2 <= counter2 + 1;
+            
+            if (counter1 == 6 && done != 1) begin
+                done = 1;
+                $display("=== Provera ===");
+                if (c_vector == add_o) begin
+                    $display("Radi.");
+                end else begin
+                    $display("Ne radi.");
                 end
             end
+//            for (j = 0; j < M; j = j + 1) begin
+//                if (c_array[j] == add_o[(j+1)*DATA_WIDTH - 1 : j*DATA_WIDTH]) begin
+//                    printf("Radi.");
+//                end
+//            end
+            
+            
+//            for (j = 0; j < M; j = j + 1) begin
+//                 $fscanf(c_file, "%d\n", c_val);
+//                 c_array[j] = c_val;
+//                // c_i[(j+1)*DATA_WIDTH - 1 : j*DATA_WIDTH] = c_val; verilog se bunio kad mu granice nisu odredjene za j?!
+//            end
+            
+            
+            
+            
         end
-        
-            if (counter2 < N - 1) begin
-                counter2 <= counter2 + 1;
-            end else begin
-                counter2 <= 0;
-            if (counter1 < M - 1) begin
-                counter1 <= counter1 + 1;
-            end else begin
-                $display("=== GOTOVO: Sve kombinacije obradjene ===");
-                $finish;
-        end
-    end
-
-    end        
+      end
+    
    
 
 endmodule
