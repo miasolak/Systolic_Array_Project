@@ -18,11 +18,17 @@ module all_tb;
 
     integer counter1;
     integer counter2;
+    integer K;
+    integer L;
     
     reg [N*DATA_WIDTH-1:0] temp_a;
     reg [M*DATA_WIDTH-1:0] temp_b;
     
     integer done = 0;
+    
+    reg [31:0] matrix_counter;
+    reg load_new_matrix;
+    integer cycle_counter = 0;
     
     // Instanca top modula
     all #(M, N, DATA_WIDTH) dut (
@@ -62,17 +68,12 @@ module all_tb;
             $fatal("Ne mogu da otvorim A.txt ili B.txt");
         end
         
-         for (i = 0; i < M; i = i + 1) begin
-                for (j = 0; j < N; j = j + 1) begin
-                    // A: učitavanje i pakovanje
-                    $fscanf(a_file, "%d\n", a_val);
-                    a_array[i][j] = a_val;              //a_array[0][0] = 3, a_array[1][0] = 6, a_array[2][0] = 9
-            
-                    $fscanf(b_file, "%d\n", b_val);
-                    b_array[i][j] = b_val;
-                end
-         end
-        
+         $fscanf(a_file, "%d\n", a_val);
+         K = a_val;
+         
+         $fscanf(b_file, "%d\n", b_val);
+         L = b_val;
+ 
         c_vector = 0;
             for (j = 0; j < M; j = j + 1) begin
                  $fscanf(c_file, "%d\n", c_val);
@@ -81,9 +82,12 @@ module all_tb;
                  //c_vector = (c_vector << DATA_WIDTH) | c_val;
             end
                    
-        $fclose(a_file);
-        $fclose(b_file);
         $fclose(c_file);
+
+
+    load_new_matrix = 0;
+    counter1 = 0;
+    counter2 = 0;
         
     end
 
@@ -94,56 +98,55 @@ module all_tb;
             c_i <= 0;
             counter1 <= 0;
             counter2 <= 0;
+            matrix_counter <= 0;
+            cycle_counter <= 0;
 
         end else begin 
-               if (counter1 < M) begin
+        
+        if (cycle_counter < 3 && matrix_counter < K) begin
+            if (counter1 < M) begin
                 temp_a = 0;
-                    for (k = 0; k < N; k = k + 1) begin
-                        temp_a = (temp_a << DATA_WIDTH) | a_array[counter1][N - 1 - k];
-                        //temp_a = (temp_a << DATA_WIDTH) | a_array[counter1][k];     //FOR ODJEDNOM (non-blocking) !!!
-                    end
+                for (k = 0; k < N; k = k + 1) begin
+                    $fscanf(a_file, "%d\n", a_val);
+                    temp_a = temp_a | (a_val << (DATA_WIDTH * k));
+                    //temp_a = (temp_a << DATA_WIDTH) | a_val;
+                end
                 a_i <= temp_a;
-          //  counter1 <= counter1 + 1;                                           //BROJAC NA CLOCK (blocking) !!!
+                counter1 <= counter1 + 1;
             end
-            counter1 <= counter1 + 1;
+            
             if (counter2 < N) begin
                 temp_b = 0;
                 for (k = 0; k < M; k = k + 1) begin
-                    temp_b = (temp_b << DATA_WIDTH) | b_array[counter2][N - 1 - k];
-                    //temp_b = (temp_b << DATA_WIDTH) | b_array[counter2][k];
+                    $fscanf(b_file, "%d\n", b_val);
+                    temp_b = temp_b | (b_val << (DATA_WIDTH * k));
                 end
                 b_i <= temp_b;
-//                counter2 <= counter2 + 1;
+                counter2 <= counter2 + 1;
             end
-            counter2 <= counter2 + 1;
-            
-            if (counter1 == 6 && done != 1) begin
-                done = 1;
-                $display("=== Provera ===");
-                if (c_vector == add_o) begin
-                    $display("Radi.");
-                end else begin
-                    $display("Ne radi.");
-                end
-            end
-//            for (j = 0; j < M; j = j + 1) begin
-//                if (c_array[j] == add_o[(j+1)*DATA_WIDTH - 1 : j*DATA_WIDTH]) begin
-//                    printf("Radi.");
-//                end
-//            end
-            
-            
-//            for (j = 0; j < M; j = j + 1) begin
-//                 $fscanf(c_file, "%d\n", c_val);
-//                 c_array[j] = c_val;
-//                // c_i[(j+1)*DATA_WIDTH - 1 : j*DATA_WIDTH] = c_val; verilog se bunio kad mu granice nisu odredjene za j?!
-//            end
-            
-            
-            
-            
-        end
-      end
+       end else begin
+            a_i <= 0;
+            b_i <= 0;
+       end     
+         cycle_counter <= cycle_counter + 1;
+         
+       if (cycle_counter == 5) begin
+            cycle_counter <= 0;
+            counter1 <= 0;
+            counter2 <= 0;
+            matrix_counter <= matrix_counter + 1; 
+       end
+
+       
+       if (matrix_counter == K) begin
+        $fclose(a_file);
+        $fclose(b_file);
+        $fclose(c_file);
+       end
+  
+      end  //if reset
+        
+    end //always
     
    
 
