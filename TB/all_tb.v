@@ -1,7 +1,7 @@
 module all_tb;
 
     parameter M = 3;
-    parameter N = 3;
+    parameter N = 4;
     parameter DATA_WIDTH = 32;
     
     reg clk_i;
@@ -51,6 +51,7 @@ module all_tb;
    // integer i, j;
     integer i, j;
     integer k;
+    integer max;
 
     initial begin
         // Inicijalizacija signala
@@ -90,6 +91,13 @@ module all_tb;
     counter1 = 0;
     counter2 = 0;
         
+        if (M > N)
+            max = M;
+        else
+            max = N;
+        
+        
+        
     end
 
     always @(posedge clk_i or negedge reset_i) begin
@@ -104,7 +112,7 @@ module all_tb;
 
         end else begin 
         
-        if (cycle_counter < 3 && matrix_counter < K) begin
+        if (cycle_counter < max && matrix_counter < K) begin
             if (counter1 < M) begin             // jel treba da sklanjam ova dva countera??
                 temp_a = 0;
                 for (k = 0; k < N; k = k + 1) begin
@@ -133,16 +141,16 @@ module all_tb;
          cycle_counter_reg <= cycle_counter;
          
           
-        if (cycle_counter == 5) begin
+        if (cycle_counter == max+N-1) begin
             cycle_counter <= 0;
             counter1 <= 0;
             counter2 <= 0;
             matrix_counter <= matrix_counter + 1; 
         end
        
-        if (cycle_counter_reg == 5) begin
+        if (cycle_counter_reg == max+N-1) begin
             if (c_vector == add_o) begin 
-                $display("Radi ");
+                $display("RAAADII");
             end else begin
                 $display("Ne radi ");
             end
@@ -157,7 +165,6 @@ module all_tb;
             end
         end 
 
-        
         
        
 //       if (matrix_counter == K) begin

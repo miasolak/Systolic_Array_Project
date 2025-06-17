@@ -1,12 +1,12 @@
 import numpy as np
 import os
+M = 3  # broj vrsta
+N = 4  # broj kolona
+K = 6  # broj matrica
+folder = "C:/Vivado/Systolic_Array"
 
-
-def generate_random_matrix(low=0, high=10):
-    """
-    Generiše 3x3 matricu sa random celobrojnim vrednostima u opsegu [low, high)
-    """
-    return np.random.randint(low=low, high=high, size=(3, 3))
+def generate_random_matrix(n_rows=N, n_cols=M, low=0, high=10):
+    return np.random.randint(low=low, high=high, size=(n_rows, n_cols))
 
 
 # 📝 Funkcija za pisanje matrice po kolonama odozdo nagore (A i B)
@@ -52,8 +52,8 @@ def write_matrix_rowwise_bottom_to_top(foldername, filename, matrix):
     # # Snimi podatke
     # np.savetxt(full_path, output, fmt="%d")
 
-K = 2
-folder = "C:/Vivado/Systolic_Array"
+
+
 
 # ✅ OBRIŠI FAJLOVE NA POČETKU
 for fname in ["A.txt", "B.txt", "C.txt"]:
@@ -82,8 +82,8 @@ for i in range(K):
 
 
     # 🟡 C je sada vektor od 3 vrednosti: skalari po kolonama
-    C = np.zeros(3, dtype=int)
-    for col in range(3):
+    C = np.zeros(M, dtype=int)
+    for col in range(M):
         C[col] = np.dot(A[:, col], B[:, col])  # skalarni proizvod kolone A i B
     print("A =\n", A)
     print("B =\n", B)
