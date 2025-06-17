@@ -12,28 +12,23 @@ module fsm (
   //  localparam Wait    = 2'b11;
 
     reg [1:0] state, next_state;
-    reg [1:0] count;
-    reg [3:0] count_cycle;
+    reg [1:0] counter;
+    
 
     // Sekvencijalna logika
     always @(posedge clk_i or negedge reset_i) begin
         if (!reset_i) begin
             state <= Idle;
-            count <= 0;
-            count_cycle <= 0;
+            counter <= 0;
         end else begin
-            state <= next_state;
-            
-            if (next_state == Load_AB && state == Load_X)
-                count_cycle <= 0;
-            else
-                count_cycle <= count_cycle + 1;
+        
+        if (state != next_state)      // ovo smisli jel moze drugacije nekako PITAAAJ
+              counter <= 0;
+        else
+              counter <= counter + 1;
                 
-            
-            if (state == Load_AB)
-                count <= count + 1;
-            else
-                count <= 0;
+        state <= next_state;
+             
         end
     end
 
@@ -42,13 +37,13 @@ module fsm (
         case (state)
             Idle: next_state = Load_AB;
             Load_AB: begin
-                if (count == 2) // PROMENA: sad čekaš 0,1,2,3 (3 takta)
+                if (counter == 2) // PROMENA: sad čekaš 0,1,2,3 (3 takta)
                     next_state = Load_X;
                 else
                     next_state = Load_AB;
             end
             Load_X: begin
-                if (count_cycle == 6)
+                if (counter == 2)
                     next_state = Load_AB;
                 else
                     next_state = Load_X;
