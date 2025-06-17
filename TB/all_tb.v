@@ -12,8 +12,8 @@ module all_tb;
     reg [M*DATA_WIDTH-1:0] c_i;     
     wire [M*DATA_WIDTH-1:0] add_o; // wire jer ga ne menjas u alwaysu - PROVERI - //sadrzi 3 registra u sebi kao 1 vektor
 
-    reg [31:0] a_array [0:M-1][0:N-1]; // M setova po N elemenata
-    reg [31:0] b_array [0:N-1][0:M-1]; // N setova po M elemenata
+//    reg [31:0] a_array [0:M-1][0:N-1]; // M setova po N elemenata
+//    reg [31:0] b_array [0:N-1][0:M-1]; // N setova po M elemenata
     reg [M*DATA_WIDTH-1:0] c_vector;        // vektor
 
     integer counter1;
@@ -29,6 +29,9 @@ module all_tb;
     reg [31:0] matrix_counter;
     reg load_new_matrix;
     integer cycle_counter = 0;
+    reg [2:0] cycle_counter_reg;
+    
+    integer dummy1, dummy2, dummy3, dummy4, dummy5, dummy6;
     
     // Instanca top modula
     all #(M, N, DATA_WIDTH) dut (
@@ -65,24 +68,22 @@ module all_tb;
         c_file = $fopen("C:/Vivado/Systolic_Array/C.txt", "r");
        
         if (!a_file || !b_file) begin
-            $fatal("Ne mogu da otvorim A.txt ili B.txt");
+            $fatal(1, "Ne mogu da otvorim A.txt ili B.txt");
         end
         
-         $fscanf(a_file, "%d\n", a_val);
+         dummy1 = $fscanf(a_file, "%d\n", a_val);
          K = a_val;
          
-         $fscanf(b_file, "%d\n", b_val);
+         dummy2 = $fscanf(b_file, "%d\n", b_val);    //jel sme dummy kao rec svuda??
          L = b_val;
  
-        c_vector = 0;
-            for (j = 0; j < M; j = j + 1) begin
-                 $fscanf(c_file, "%d\n", c_val);
-                 //c_vector = (c_val << (DATA_WIDTH * (M - 1 - j))) | c_vector;
-                 c_vector = c_vector | (c_val << (DATA_WIDTH * j));
-                 //c_vector = (c_vector << DATA_WIDTH) | c_val;
-            end
+//        c_vector = 0;
+//            for (j = 0; j < M; j = j + 1) begin
+//                 dummy3 = $fscanf(c_file, "%d\n", c_val);        
+//                 c_vector = c_vector | (c_val << (DATA_WIDTH * j));
+//            end
                    
-        $fclose(c_file);
+    //    $fclose(c_file);
 
 
     load_new_matrix = 0;
@@ -104,10 +105,10 @@ module all_tb;
         end else begin 
         
         if (cycle_counter < 3 && matrix_counter < K) begin
-            if (counter1 < M) begin
+            if (counter1 < M) begin             // jel treba da sklanjam ova dva countera??
                 temp_a = 0;
                 for (k = 0; k < N; k = k + 1) begin
-                    $fscanf(a_file, "%d\n", a_val);
+                    dummy4 = $fscanf(a_file, "%d\n", a_val);
                     temp_a = temp_a | (a_val << (DATA_WIDTH * k));
                     //temp_a = (temp_a << DATA_WIDTH) | a_val;
                 end
@@ -118,7 +119,7 @@ module all_tb;
             if (counter2 < N) begin
                 temp_b = 0;
                 for (k = 0; k < M; k = k + 1) begin
-                    $fscanf(b_file, "%d\n", b_val);
+                    dummy5 = $fscanf(b_file, "%d\n", b_val);
                     temp_b = temp_b | (b_val << (DATA_WIDTH * k));
                 end
                 b_i <= temp_b;
@@ -129,25 +130,46 @@ module all_tb;
             b_i <= 0;
        end     
          cycle_counter <= cycle_counter + 1;
+         cycle_counter_reg <= cycle_counter;
          
-       if (cycle_counter == 5) begin
+          
+        if (cycle_counter == 5) begin
             cycle_counter <= 0;
             counter1 <= 0;
             counter2 <= 0;
             matrix_counter <= matrix_counter + 1; 
-       end
-
+        end
        
-       if (matrix_counter == K) begin
-        $fclose(a_file);
-        $fclose(b_file);
-        $fclose(c_file);
-       end
+        if (cycle_counter_reg == 5) begin
+            if (c_vector == add_o) begin 
+                $display("Radi ");
+            end else begin
+                $display("Ne radi ");
+            end
+        end
+       
+
+        if (cycle_counter == 1) begin
+            c_vector = 0;
+            for (j = 0; j < M; j = j + 1) begin
+                dummy6 = $fscanf(c_file, "%d\n", c_val);
+                c_vector = c_vector | (c_val << (DATA_WIDTH * j));
+            end
+        end 
+
+        
+        
+       
+//       if (matrix_counter == K) begin
+//            $fclose(a_file);
+//            $fclose(b_file);
+//            $fclose(c_file);
+//       end
   
       end  //if reset
-        
+            
     end //always
-    
+
    
 
 endmodule
