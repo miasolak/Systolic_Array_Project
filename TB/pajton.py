@@ -1,12 +1,12 @@
 import numpy as np
 import os
-M = 3  # broj vrsta
-N = 4  # broj kolona
-K = 6  # broj matrica
+M = 5  # broj vrsta
+N = 5 # broj kolona
+K = 10  # broj matrica
 folder = "C:/Vivado/Systolic_Array"
 
 def generate_random_matrix(n_rows=N, n_cols=M, low=0, high=10):
-    return np.random.randint(low=low, high=high, size=(n_rows, n_cols))
+    return np.random.randint(low=low, high=high, size=(n_rows, n_cols)  )
 
 
 # 📝 Funkcija za pisanje matrice po kolonama odozdo nagore (A i B)
