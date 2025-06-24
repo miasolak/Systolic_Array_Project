@@ -1,6 +1,7 @@
-module fsm #(parameter M = 3, N = 4)(
+module fsm #(parameter M = 3, N = 3)(
     input wire clk_i,
     input wire reset_i,
+    input wire ready_i,
     output reg en_a_o,
     output reg en_b_o,
     output reg en_x_o
@@ -14,7 +15,7 @@ module fsm #(parameter M = 3, N = 4)(
     localparam Load_X  = 2'b10;
 
     reg [1:0] state, next_state;
-    reg [1:0] counter;
+    reg [3:0] counter;
     
 
     // Sekvencijalna logika
@@ -23,7 +24,7 @@ module fsm #(parameter M = 3, N = 4)(
             state <= Idle;
             counter <= 0;
         end else begin
-        if (state != next_state)      // ovo smisli jel moze drugacije nekako PITAAAJ
+        if (state != next_state)      
               counter <= 0;
         else
               counter <= counter + 1;
@@ -45,7 +46,13 @@ module fsm #(parameter M = 3, N = 4)(
         end
         
         case (state)
-            Idle: next_state = Load_AB;
+            Idle: if (ready_i == 1) begin
+                    next_state = Load_AB;
+                  end else begin
+                    next_state = Idle;
+                  end 
+            
+            //ready A, ready B
             Load_AB: begin
                     if (counter == min - 1) begin
                         if (M == N)
@@ -56,7 +63,7 @@ module fsm #(parameter M = 3, N = 4)(
                         next_state = Load_AB;     // još nije gotovo
                     end
             
-            end
+            end     
             Wait: begin
                     if (counter == max - min - 1) // PROMENA: sad čekaš 0,1,2,3 (3 takta)
                         next_state = Load_X;
@@ -64,11 +71,15 @@ module fsm #(parameter M = 3, N = 4)(
                         next_state = Wait;
             end
             Load_X: begin
-                if (counter == N - 1)
-                    next_state = Load_AB;
-                else
-                    next_state = Load_X;
-            end
+                    if (ready_i == 0) begin
+                        next_state = Idle;
+                    end else                  
+                        if (counter == N - 1)
+                            next_state = Load_AB;
+                        else 
+                            next_state = Load_X;
+                        end
+            //posle ovog ili u idle ili load ab (ready a, ready b)
             
             default: next_state = Idle;
         endcase

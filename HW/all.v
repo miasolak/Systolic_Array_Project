@@ -3,6 +3,7 @@
 module all #(parameter M = 3, N = 3, DATA_WIDTH = 32) (
     input wire clk_i,
     input wire reset_i,
+    input wire ready_i,
 
     input wire [N*DATA_WIDTH-1:0] a_i,      //a_i = 3 * 32 bita je velicina VEKTORA a_i
     input wire [M*DATA_WIDTH-1:0] b_i,
@@ -24,9 +25,15 @@ module all #(parameter M = 3, N = 3, DATA_WIDTH = 32) (
 
     wire en_a_i, en_b_i, en_x_i;
 
-    fsm fsm_logic (
+    fsm
+    #(
+        .M(M),
+        .N(N)
+    )fsm_logic
+    (
         .clk_i(clk_i),
         .reset_i(reset_i),
+        .ready_i(ready_i),
         .en_a_o(en_a_i),
         .en_b_o(en_b_i),
         .en_x_o(en_x_i)
