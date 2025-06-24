@@ -4,17 +4,16 @@ module PE #(
 )(
     input clk_i, reset_i, en_a_i, en_b_i, en_x_i, 
     input  [DATA_WIDTH-1:0] a_i,
-    input  [DATA_WIDTH-1:0] x_i,      //jel treba wire za input?? PITAJ 
+    input  [DATA_WIDTH-1:0] x_i,    
     input  [DATA_WIDTH-1:0] b_i,
     output [DATA_WIDTH-1:0] a_o, 
     output [DATA_WIDTH-1:0] b_o, 
     output [DATA_WIDTH-1:0] add_o
 );
-
+    //Internal registers
     reg [DATA_WIDTH-1:0] a;
     reg [DATA_WIDTH-1:0] b;
     reg [DATA_WIDTH-1:0] x;
-    reg valid;
     
     wire [DATA_WIDTH-1:0] mul;
      
@@ -35,30 +34,17 @@ module PE #(
             end    
         end
     end
-   
+    
+    // Pass values to the next PE
     assign a_o = a;
     assign b_o = b;  
-       
+    
+    // Multiply and accumulate   
     assign mul = a * b; 
-    assign add_o = mul + x; //za visebitne signale ide * i + //da li treba x ili x_out?
+    assign add_o = mul + x;
     
- endmodule   
+endmodule   
     
-        
-//    always @(posedge clk_i) begin
-//        if(!reset_i) begin
-//            valid <= 0;
-//        end else if (en_a_i == 0 && en_b_i == 0) begin
-//            valid <= 1;
-//        end else begin
-//            valid <= 0;
-//        end
-//    end
-    
-    
-//    assign mul = (valid) ? a * b : 0;
-//    assign add_o = (valid) ? mul + x : 0;
 
-    //gde stoji rec wire
 
     
