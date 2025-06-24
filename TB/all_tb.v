@@ -1,11 +1,13 @@
 module all_tb;
-
-    parameter M = 3;
-    parameter N = 4;
+    
+    parameter M = 5;
+    parameter N = 5;
     parameter DATA_WIDTH = 32;
     
     reg clk_i;
     reg reset_i;
+    reg ready_i;
+    reg ready_i_reg;
 
     reg [N*DATA_WIDTH-1:0] a_i;     //sadrzi 3 registra u sebi kao 1 vektor
     reg [M*DATA_WIDTH-1:0] b_i;      
@@ -29,14 +31,15 @@ module all_tb;
     reg [31:0] matrix_counter;
     reg load_new_matrix;
     integer cycle_counter = 0;
-    reg [2:0] cycle_counter_reg;
+    reg [4:0] cycle_counter_reg;
     
     integer dummy1, dummy2, dummy3, dummy4, dummy5, dummy6;
     
     // Instanca top modula
-    all #(M, N, DATA_WIDTH) dut (
+    all #(.M(M), .N(N), .DATA_WIDTH(DATA_WIDTH)) dut (
         .clk_i(clk_i),
         .reset_i(reset_i),
+        .ready_i(ready_i),
         .a_i(a_i),
         .b_i(b_i),
         .add_o(add_o)
@@ -64,12 +67,18 @@ module all_tb;
         #10 reset_i = 1;
 
         // Otvaranje fajlova
-        a_file = $fopen("C:/Vivado/Systolic_Array/A.txt", "r");
-        b_file = $fopen("C:/Vivado/Systolic_Array/B.txt", "r");
-        c_file = $fopen("C:/Vivado/Systolic_Array/C.txt", "r");
+        a_file = $fopen("A.txt", "r");
+        b_file = $fopen("B.txt", "r");
+        c_file = $fopen("C.txt", "r");
        
-        if (!a_file || !b_file) begin
-            $fatal(1, "Ne mogu da otvorim A.txt ili B.txt");
+        if (!a_file) begin
+            $fatal(1, "Ne mogu da otvorim A.txt");
+        end
+        if (!b_file) begin
+            $fatal(1, "Ne mogu da otvorim B.txt");
+        end
+        if (!c_file) begin
+            $fatal(1, "Ne mogu da otvorim C.txt");
         end
         
          dummy1 = $fscanf(a_file, "%d\n", a_val);
@@ -77,6 +86,9 @@ module all_tb;
          
          dummy2 = $fscanf(b_file, "%d\n", b_val);    //jel sme dummy kao rec svuda??
          L = b_val;
+         
+        
+          
  
 //        c_vector = 0;
 //            for (j = 0; j < M; j = j + 1) begin
@@ -96,9 +108,9 @@ module all_tb;
         else
             max = N;
         
-        
-        
+        ready_i = 1;
     end
+    
 
     always @(posedge clk_i or negedge reset_i) begin
         if (!reset_i) begin
@@ -109,6 +121,7 @@ module all_tb;
             counter2 <= 0;
             matrix_counter <= 0;
             cycle_counter <= 0;
+            ready_i <= 0;
 
         end else begin 
         
@@ -137,8 +150,14 @@ module all_tb;
             a_i <= 0;
             b_i <= 0;
        end     
+       
+       if (matrix_counter < K+1)
          cycle_counter <= cycle_counter + 1;
-         cycle_counter_reg <= cycle_counter;
+       else
+         cycle_counter <= 0;
+         
+       
+        cycle_counter_reg <= cycle_counter;
          
           
         if (cycle_counter == max+N-1) begin
@@ -146,16 +165,23 @@ module all_tb;
             counter1 <= 0;
             counter2 <= 0;
             matrix_counter <= matrix_counter + 1; 
+            
+           if (matrix_counter == K)begin
+            ready_i <= 0;
+           
+           end
         end
+        
+
        
-        if (cycle_counter_reg == max+N-1) begin
+        if (cycle_counter_reg == max+N-1 && matrix_counter < K+1) begin
             if (c_vector == add_o) begin 
                 $display("RAAADII");
             end else begin
                 $display("Ne radi ");
             end
         end
-       
+           
 
         if (cycle_counter == 1) begin
             c_vector = 0;
@@ -164,8 +190,14 @@ module all_tb;
                 c_vector = c_vector | (c_val << (DATA_WIDTH * j));
             end
         end 
-
         
+
+//            cycle_counter <= 0;
+//        else 
+//            ready_i <= 1;
+   
+        
+      
        
 //       if (matrix_counter == K) begin
 //            $fclose(a_file);
