@@ -1,4 +1,4 @@
-module fsm #(
+module control_logic #(
     parameter M = 3,
     parameter N = 3
 )(
@@ -9,6 +9,33 @@ module fsm #(
     output reg en_b_o,
     output reg en_x_o
 );
+    //function for calculating min number of bits for counter
+    function integer counter_bits;  
+    input integer max, min, N;
+    integer max_count, temp;
+    begin
+        max_count = min;
+        if (max - min > max_count)
+            max_count = max - min;
+        if (N > max_count)
+            max_count = N;
+        
+        counter_bits = 0;
+        temp = max_count;
+        while (temp > 0) begin
+            counter_bits = counter_bits + 1;
+            temp = temp >> 1;
+        end
+              
+    end
+    endfunction
+    
+    //calling function from above
+    localparam max_bits = counter_bits (
+        (M > N) ? M : N,
+        (M > N) ? N : M,
+        N
+    );
     
     // Internal parameters and state registers
     localparam Idle    = 2'b00;
@@ -17,25 +44,42 @@ module fsm #(
     localparam Load_X  = 2'b10;
     
     reg [1:0] state, next_state;
-    reg [3:0] counter;
-    reg [3:0] max;
-    reg [3:0] min;
-
+    reg [30:0] counter;
+    reg [10:0] max;
+    reg [10:0] min;
+    reg [1:0] prev_state;
+    reg [1:0] current_state;  // dodatni reg
+     
+//    // State and counter update
+//    always @(posedge clk_i or negedge reset_i) begin
+//        if (!reset_i) begin
+//            state <= Idle;
+//            counter <= 0;
+//        end else begin
+//        if (state != next_state)      
+//              counter <= 0;
+//        else
+//              counter <= counter + 1;
+                
+//        state <= next_state;
+             
+//        end
+//    end
     
-
-    // State and counter update
     always @(posedge clk_i or negedge reset_i) begin
         if (!reset_i) begin
             state <= Idle;
             counter <= 0;
+            current_state <= Idle;
         end else begin
-        if (state != next_state)      
-              counter <= 0;
-        else
-              counter <= counter + 1;
-                
-        state <= next_state;
-             
+            state <= next_state;
+    
+            if (next_state != current_state)
+                counter <= 0;
+            else
+                counter <= counter + 1;
+    
+            current_state <= next_state;
         end
     end
 
@@ -76,13 +120,13 @@ module fsm #(
             end
             
             Load_X: begin
-                if (ready_i == 0) begin
-                    next_state = Idle;
-                end else                  
-                    if (counter == N - 1)
+                if (counter == N - 1)
+                    if (ready_i == 1) 
                         next_state = Load_AB;
-                    else 
-                        next_state = Load_X;
+                    else                  
+                        next_state = Idle;
+                else
+                    next_state = Load_X;
             end
             
             default: next_state = Idle;

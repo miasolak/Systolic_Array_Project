@@ -1,12 +1,13 @@
-module all_tb;
+module systolic_array_tb;
     
-    parameter M = 5;
-    parameter N = 5;
+    parameter M = 14;
+    parameter N = 16;
     parameter DATA_WIDTH = 32;
     
     reg clk_i;
     reg reset_i;
     reg ready_i;
+    wire en_x_o;
     
     //Input and output
     reg [N*DATA_WIDTH-1:0] a_i;    
@@ -18,7 +19,7 @@ module all_tb;
     integer counter1;
     integer counter2;
     integer K, L;
-    integer i, j, k;
+    integer j, k;
     integer max;
     
     reg [N*DATA_WIDTH-1:0] temp_a;
@@ -26,15 +27,19 @@ module all_tb;
      
     reg [31:0] matrix_counter;
     integer cycle_counter = 0;
-    reg [4:0] cycle_counter_reg;
+    reg [32:0] cycle_counter_reg;
+    wire data_read_single;
+    reg   en_x_dly;
+  
     
     // File I/O 
     integer a_file, b_file, c_file;
     integer a_val, b_val, c_val;
-    integer dummy1, dummy2, dummy3, dummy4, dummy5, dummy6;
+    integer dummy1, dummy2, dummy3, dummy4, dummy5;
+    integer seed = 32'hABCD1234;
     
     // Instantiate DUT
-    all #(
+    systolic_array #(
         .M(M),
         .N(N),
         .DATA_WIDTH(DATA_WIDTH)
@@ -44,15 +49,17 @@ module all_tb;
         .ready_i(ready_i),
         .a_i(a_i),
         .b_i(b_i),
-        .add_o(add_o)
+        .add_o(add_o),
+        .en_x_o(en_x_o)
     );
 
     // Generating clock
     always #5 clk_i = ~clk_i;
 
-    
+    assign data_read_single = en_x_o & ~en_x_dly;
     
 
+    
     initial begin
         // Initializing signals
         clk_i = 0;
@@ -84,7 +91,7 @@ module all_tb;
         dummy2 = $fscanf(b_file, "%d\n", b_val);  
         L = b_val;
 
-
+        ready_i = 1;
         counter1 = 0;
         counter2 = 0;
         
@@ -115,7 +122,7 @@ module all_tb;
             if (counter1 < M) begin         
                 temp_a = 0;
                 for (k = 0; k < N; k = k + 1) begin
-                    dummy4 = $fscanf(a_file, "%d\n", a_val);
+                    dummy3 = $fscanf(a_file, "%d\n", a_val);
                     temp_a = temp_a | (a_val << (DATA_WIDTH * k));
                 end
                 a_i <= temp_a;
@@ -126,7 +133,7 @@ module all_tb;
             if (counter2 < N) begin
                 temp_b = 0;
                 for (k = 0; k < M; k = k + 1) begin
-                    dummy5 = $fscanf(b_file, "%d\n", b_val);
+                    dummy4 = $fscanf(b_file, "%d\n", b_val);
                     temp_b = temp_b | (b_val << (DATA_WIDTH * k));
                 end
                 b_i <= temp_b;
@@ -159,9 +166,9 @@ module all_tb;
         // Check result        
         if (cycle_counter_reg == max+N-1 && matrix_counter < K+1) begin
             if (c_vector == add_o) begin 
-                $display("It works.");
+                $display("It works!!!");
             end else begin
-                $display("It doesn't work.");
+                $display("It doesn't work!!!");
             end
         end
            
@@ -169,10 +176,21 @@ module all_tb;
         if (cycle_counter == 1) begin
             c_vector = 0;
             for (j = 0; j < M; j = j + 1) begin
-                dummy6 = $fscanf(c_file, "%d\n", c_val);
+                dummy5 = $fscanf(c_file, "%d\n", c_val);
                 c_vector = c_vector | (c_val << (DATA_WIDTH * j));
             end
         end 
+        
+        
+        
+//        //ready signal
+//        if (ready_i == 0)
+//            ready_i <= $random(seed) % 2;  // random
+//        else if (data_read_single == 1)
+//            ready_i <= $random(seed) % 2;
+        
+
+        en_x_dly <= en_x_o;
         
   
         end  //from reset

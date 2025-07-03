@@ -1,6 +1,6 @@
 `timescale 1ns / 1ps
 
-module all #(
+module systolic_array #(
     parameter M = 3,
     parameter N = 3,
     parameter DATA_WIDTH = 32
@@ -11,22 +11,23 @@ module all #(
     input wire [N*DATA_WIDTH-1:0] a_i, 
     input wire [M*DATA_WIDTH-1:0] b_i,
    
-    output wire [M*DATA_WIDTH-1:0] add_o
+    output wire [M*DATA_WIDTH-1:0] add_o,
+    output wire en_x_o
 );
-    // Enable signals from FSM
-    wire en_a_i, en_b_i, en_x_i;
+    // Enable signals from Control_Logic
+    wire en_a_i, en_b_i;
     
     // Control logic instance
-    fsm #(
+    control_logic #(
         .M(M),
         .N(N)
-    )fsm_logic (
+    )control_logic_inst (
         .clk_i(clk_i),
         .reset_i(reset_i),
         .ready_i(ready_i),
         .en_a_o(en_a_i),
         .en_b_o(en_b_i),
-        .en_x_o(en_x_i)
+        .en_x_o(en_x_o)
     );
 
 
@@ -48,10 +49,10 @@ module all #(
     endgenerate
   
     // 2D interconnect wires between PEs
-    wire [DATA_WIDTH-1:0] a_wire [0:N-1][0:M];     
-    wire [DATA_WIDTH-1:0] b_wire [0:N][0:M-1];
-    wire [DATA_WIDTH-1:0] x_wire [0:N][0:M-1];
-    wire [DATA_WIDTH-1:0] add_out [0:N-1][0:M-1];
+    wire signed [DATA_WIDTH-1:0] a_wire [0:N-1][0:M];     
+    wire signed [DATA_WIDTH-1:0] b_wire [0:N][0:M-1];
+    wire signed [DATA_WIDTH-1:0] x_wire [0:N][0:M-1];
+    wire signed [DATA_WIDTH-1:0] add_out [0:N-1][0:M-1];
 
     // PE array generation
     generate
@@ -62,7 +63,7 @@ module all #(
                     .reset_i(reset_i),
                     .en_a_i(en_a_i),
                     .en_b_i(en_b_i),
-                    .en_x_i(en_x_i),
+                    .en_x_i(en_x_o),
 
                     .a_i(a_wire[i][j]),
                     .b_i(b_wire[i][j]),
