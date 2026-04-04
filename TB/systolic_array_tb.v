@@ -1,13 +1,14 @@
 module systolic_array_tb;
     
-    parameter M = 14;
-    parameter N = 16;
+    parameter M = 3;
+    parameter N = 3;
     parameter DATA_WIDTH = 32;
     
     reg clk_i;
     reg reset_i;
     reg ready_i;
-    wire en_x_o;
+    reg ctrl_i;
+    wire valid_o;
     
     //Input and output
     reg [N*DATA_WIDTH-1:0] a_i;    
@@ -29,7 +30,7 @@ module systolic_array_tb;
     integer cycle_counter = 0;
     reg [32:0] cycle_counter_reg;
     wire data_read_single;
-    reg   en_x_dly;
+    reg   valid_o_dly;
   
     
     // File I/O 
@@ -47,18 +48,18 @@ module systolic_array_tb;
         .clk_i(clk_i),
         .reset_i(reset_i),
         .ready_i(ready_i),
+      //  .ctrl_i(ctrl_i),
         .a_i(a_i),
         .b_i(b_i),
         .add_o(add_o),
-        .en_x_o(en_x_o)
+        .valid_o(valid_o)
     );
 
     // Generating clock
     always #5 clk_i = ~clk_i;
-
-    assign data_read_single = en_x_o & ~en_x_dly;
     
-
+    //Detect posedge of valid_o
+    assign data_read_single = valid_o & ~valid_o_dly;
     
     initial begin
         // Initializing signals
@@ -94,13 +95,14 @@ module systolic_array_tb;
         ready_i = 1;
         counter1 = 0;
         counter2 = 0;
+        ctrl_i = 0;
         
         if (M > N)
             max = M;
         else
             max = N;
         
-        ready_i = 1;
+
     end
     
     // Main testbench loop
@@ -114,6 +116,7 @@ module systolic_array_tb;
             matrix_counter <= 0;
             cycle_counter <= 0;
             ready_i <= 0;
+            ctrl_i <= 0;
 
         end else begin 
         
@@ -142,14 +145,17 @@ module systolic_array_tb;
         end else begin
             a_i <= 0;
             b_i <= 0;
-        end     
-       
-        if (matrix_counter < K+1)
+        end
+             
+        //Generating cycle counter and finishing simulation
+        if (matrix_counter < K+1) 
             cycle_counter <= cycle_counter + 1;
-        else
+        else 
             cycle_counter <= 0;
-         
+          
+        
         cycle_counter_reg <= cycle_counter;
+
          
         // Prepare next matrix 
         if (cycle_counter == max+N-1) begin
@@ -159,6 +165,8 @@ module systolic_array_tb;
             matrix_counter <= matrix_counter + 1; 
            if (matrix_counter == K)begin
             ready_i <= 0;
+            ctrl_i <= 0;
+         //   $finish;
            end
         end
         
@@ -166,13 +174,13 @@ module systolic_array_tb;
         // Check result        
         if (cycle_counter_reg == max+N-1 && matrix_counter < K+1) begin
             if (c_vector == add_o) begin 
-                $display("It works!!!");
+                $display("TEST PASSED for matrix %0d! Output data is same as data loaded from file.", matrix_counter);  
             end else begin
-                $display("It doesn't work!!!");
+                $display("FAILED for matrix %0d, Expected value: %h, Read: %h", matrix_counter, c_vector, add_o);
             end
         end
            
-
+        //Load output from file
         if (cycle_counter == 1) begin
             c_vector = 0;
             for (j = 0; j < M; j = j + 1) begin
@@ -183,20 +191,25 @@ module systolic_array_tb;
         
         
         
-//        //ready signal
-//        if (ready_i == 0)
-//            ready_i <= $random(seed) % 2;  // random
+        //Generating ready signal
+        if (ready_i == 0)
+            ready_i <= $random(seed) % 2;  
+        else if (data_read_single == 1)
+            ready_i <= $random(seed) % 2;
+
+            
+//         //Generating ready signal
+//        if (ctrl_i == 0)
+//            ctrl_i <= $random(seed) % 2;  
 //        else if (data_read_single == 1)
-//            ready_i <= $random(seed) % 2;
+//            ctrl_i <= $random(seed) % 2;    
         
 
-        en_x_dly <= en_x_o;
+        valid_o_dly <= valid_o;
         
   
         end  //from reset
             
     end //from always
-
-   
 
 endmodule

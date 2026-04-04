@@ -1,11 +1,11 @@
 import numpy as np
 import os
-M = 5  # broj vrsta
-N = 5 # broj kolona
-K = 10  # broj matrica
+M = 4  # broj vrsta
+N = 7 # broj kolona
+K = 6  # broj matrica
 folder = "C:/Vivado/Systolic_Array"
 
-def generate_random_matrix(n_rows=N, n_cols=M, low=0, high=10):
+def generate_random_matrix(n_rows=N, n_cols=M, low=1 , high=30):
     return np.random.randint(low=low, high=high, size=(n_rows, n_cols)  )
 
 
@@ -68,16 +68,17 @@ for i in range(K):
     B = generate_random_matrix()
 
     # A = np.array([
+    #     [10, 20, 30],
+    #     [40, 50, 60],
+    #     [70, 80, 90]
+    # ])
+
+    # B = np.array([
     #     [1, 2, 3],
     #     [4, 5, 6],
     #     [7, 8, 9]
     # ])
 
-    # B = np.array([
-    #     [10, 20, 30],
-    #     [40, 50, 60],
-    #     [70, 80, 90]
-    # ])
 
 
 
@@ -96,4 +97,4 @@ for i in range(K):
 
     #write_vector("C", "C.txt", C)
     print("Putanja do A.txt:", os.path.abspath("A/A.txt"))
-    print("🎉 Zavrseno.")
+    print(" Zavrseno.")
