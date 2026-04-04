@@ -11,8 +11,6 @@ module control_logic #(
     output reg en_b_o,
     output reg en_x_o
 );
-  //  input wire ctrl_i,
-   //   output reg ctrl_o
    
     //function for calculating min number of bits for counter
     function integer counter_bits;  
@@ -70,29 +68,9 @@ module control_logic #(
                 
         state <= next_state;
         
-//        // JEL SME OVAKO??
-//            if ((state == Idle || state == Load_X) && next_state == Load_AB)
-//                ctrl_reg <= ctrl_i;
              
         end
     end
-    
-//    always @(posedge clk_i or negedge reset_i) begin
-//        if (!reset_i) begin
-//            state <= Idle;
-//            counter <= 0;
-//            current_state <= Idle;
-//        end else begin
-//            state <= next_state;
-    
-//            if (next_state != current_state)
-//                counter <= 0;
-//            else
-//                counter <= counter + 1;
-    
-//            current_state <= next_state;
-//        end
-//    end
 
     // Next state logic
     always @(*) begin

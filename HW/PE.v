@@ -10,7 +10,6 @@ module PE #(
     output signed [DATA_WIDTH-1:0] b_o, 
     output signed [DATA_WIDTH-1:0] add_o
 );
-//    input ctrl_i, 
     //Internal registers
     reg signed [DATA_WIDTH-1:0] a;
     reg signed [DATA_WIDTH-1:0] b;

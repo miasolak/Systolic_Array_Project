@@ -9,16 +9,15 @@ module systolic_array #(
     input wire ready_i,
     input wire [N*DATA_WIDTH-1:0] a_i, 
     input wire [M*DATA_WIDTH-1:0] b_i,
-    output wire [M*DATA_WIDTH-1:0] add_o,       //ime
-    output reg valid_o  //valid                       // ime
+    output wire [M*DATA_WIDTH-1:0] add_o,       
+    output reg valid_o                       
 );
 
 
    
-//    input wire ctrl_i,
+
     // Enable signals from Control_Logic
     wire en_a_i, en_b_i, en_x_i;
-    //wire ctrl_o;
     
     // Control logic instance
     control_logic #(
@@ -32,8 +31,6 @@ module systolic_array #(
         .en_b_o(en_b_i),
         .en_x_o(en_x_i)
     );
-      //  .ctrl_i (ctrl_i),
-      //  .ctrl_o(ctrl_o)
       
     // Input packed into arrays
     wire [DATA_WIDTH-1:0] a_in [0:N-1]; 
