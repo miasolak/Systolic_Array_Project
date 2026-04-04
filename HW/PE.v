@@ -2,20 +2,22 @@
 module PE #(
     parameter DATA_WIDTH = 32
 )(
-    input clk_i, reset_i, en_a_i, en_b_i, en_x_i, 
-    input  [DATA_WIDTH-1:0] a_i,
-    input  [DATA_WIDTH-1:0] x_i,    
-    input  [DATA_WIDTH-1:0] b_i,
-    output [DATA_WIDTH-1:0] a_o, 
-    output [DATA_WIDTH-1:0] b_o, 
-    output [DATA_WIDTH-1:0] add_o
+    input clk_i, reset_i, en_a_i, en_b_i, en_x_i,
+    input  signed [DATA_WIDTH-1:0] a_i,
+    input  signed [DATA_WIDTH-1:0] x_i,    
+    input  signed [DATA_WIDTH-1:0] b_i,
+    output signed [DATA_WIDTH-1:0] a_o, 
+    output signed [DATA_WIDTH-1:0] b_o, 
+    output signed [DATA_WIDTH-1:0] add_o
 );
+//    input ctrl_i, 
     //Internal registers
-    reg [DATA_WIDTH-1:0] a;
-    reg [DATA_WIDTH-1:0] b;
-    reg [DATA_WIDTH-1:0] x;
+    reg signed [DATA_WIDTH-1:0] a;
+    reg signed [DATA_WIDTH-1:0] b;
+    reg signed [DATA_WIDTH-1:0] x;
     
-    wire [DATA_WIDTH-1:0] mul;
+    wire signed [DATA_WIDTH-1:0] mul;
+    wire signed [DATA_WIDTH-1:0] sum;   
      
     always @(posedge clk_i or negedge reset_i) begin
         if(!reset_i) begin
@@ -41,7 +43,11 @@ module PE #(
     
     // Multiply and accumulate   
     assign mul = a * b; 
+//    assign sum = mul + x;
     assign add_o = mul + x;
+ //   assign add_o = ctrl_i ? sum : mul;
+
+   // assign add_o = mul + x;
     
 endmodule   
     

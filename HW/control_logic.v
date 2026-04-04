@@ -1,3 +1,5 @@
+`timescale 1ns / 1ps
+
 module control_logic #(
     parameter M = 3,
     parameter N = 3
@@ -9,6 +11,9 @@ module control_logic #(
     output reg en_b_o,
     output reg en_x_o
 );
+  //  input wire ctrl_i,
+   //   output reg ctrl_o
+   
     //function for calculating min number of bits for counter
     function integer counter_bits;  
     input integer max, min, N;
@@ -23,7 +28,7 @@ module control_logic #(
         counter_bits = 0;
         temp = max_count;
         while (temp > 0) begin
-            counter_bits = counter_bits + 1;
+            counter_bits = counter_bits + 1;     //stavi clog2 !!!$clog
             temp = temp >> 1;
         end
               
@@ -49,43 +54,48 @@ module control_logic #(
     reg [10:0] min;
     reg [1:0] prev_state;
     reg [1:0] current_state;  // dodatni reg
+ //   reg ctrl_reg;
      
-//    // State and counter update
-//    always @(posedge clk_i or negedge reset_i) begin
-//        if (!reset_i) begin
-//            state <= Idle;
-//            counter <= 0;
-//        end else begin
-//        if (state != next_state)      
-//              counter <= 0;
-//        else
-//              counter <= counter + 1;
-                
-//        state <= next_state;
-             
-//        end
-//    end
-    
+    // State and counter update
     always @(posedge clk_i or negedge reset_i) begin
         if (!reset_i) begin
             state <= Idle;
             counter <= 0;
-            current_state <= Idle;
+       //     ctrl_reg <= 0;
         end else begin
-            state <= next_state;
-    
-            if (next_state != current_state)
-                counter <= 0;
-            else
-                counter <= counter + 1;
-    
-            current_state <= next_state;
+        if (state != next_state)      
+              counter <= 0;
+        else
+              counter <= counter + 1;
+                
+        state <= next_state;
+        
+//        // JEL SME OVAKO??
+//            if ((state == Idle || state == Load_X) && next_state == Load_AB)
+//                ctrl_reg <= ctrl_i;
+             
         end
     end
+    
+//    always @(posedge clk_i or negedge reset_i) begin
+//        if (!reset_i) begin
+//            state <= Idle;
+//            counter <= 0;
+//            current_state <= Idle;
+//        end else begin
+//            state <= next_state;
+    
+//            if (next_state != current_state)
+//                counter <= 0;
+//            else
+//                counter <= counter + 1;
+    
+//            current_state <= next_state;
+//        end
+//    end
 
     // Next state logic
     always @(*) begin
-    
         if (M > N) begin
             max = M;
             min = N;
@@ -95,12 +105,15 @@ module control_logic #(
         end
         
         case (state)
+        
+            //Waiting for data to be ready
             Idle: if (ready_i == 1) begin
                       next_state = Load_AB;
                   end else begin
                       next_state = Idle;
             end 
             
+            //Loading data
             Load_AB: begin
                 if (counter == min - 1) begin
                     if (M == N)
@@ -112,13 +125,15 @@ module control_logic #(
                     end
             end     
             
+            //Loads the remaining part of the larger matrix
             Wait: begin
-                if (counter == max - min - 1) // Waiting to reach max(N, M)
+                if (counter == max - min - 1) 
                     next_state = Load_X;
                 else
                     next_state = Wait;
             end
             
+            //Calculating for N cycles  
             Load_X: begin
                 if (counter == N - 1)
                     if (ready_i == 1) 
@@ -138,11 +153,12 @@ module control_logic #(
         en_a_o = 0;
         en_b_o = 0;
         en_x_o = 0;
-
+    //    ctrl_o = ctrl_reg;
+        
         case (state)
             Load_AB: begin
                 en_a_o = 1;
-                en_b_o = 1;             
+                en_b_o = 1;            
             end
             
             Wait: begin
