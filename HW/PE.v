@@ -42,11 +42,7 @@ module PE #(
     
     // Multiply and accumulate   
     assign mul = a * b; 
-//    assign sum = mul + x;
     assign add_o = mul + x;
- //   assign add_o = ctrl_i ? sum : mul;
-
-   // assign add_o = mul + x;
     
 endmodule   
     
