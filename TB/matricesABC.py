@@ -1,15 +1,17 @@
 import numpy as np
 import os
-M = 4  # broj vrsta
-N = 7 # broj kolona
-K = 6  # broj matrica
+
+M = 4  # number of columns
+N = 7  # number of rows
+K = 6  # number of matrix pairs
 folder = "C:/Vivado/Systolic_Array"
 
-def generate_random_matrix(n_rows=N, n_cols=M, low=1 , high=30):
-    return np.random.randint(low=low, high=high, size=(n_rows, n_cols)  )
+
+def generate_random_matrix(n_rows=N, n_cols=M, low=1, high=30):
+    return np.random.randint(low=low, high=high, size=(n_rows, n_cols))
 
 
-# 📝 Funkcija za pisanje matrice po kolonama odozdo nagore (A i B)
+# Writes a matrix column by column, from the last column to the first
 def write_matrix_columnwise(foldername, filename, matrix):
     os.makedirs(foldername, exist_ok=True)
     path = os.path.join(foldername, filename)
@@ -17,24 +19,23 @@ def write_matrix_columnwise(foldername, filename, matrix):
         for col in reversed(range(matrix.shape[1])):
             for row in range(matrix.shape[0]):
                 f.write(f"{matrix[row][col]}\n")
-    print(f"✅ Upisano: {path}")
+    print(f" Written to: {path}")
 
 
-
-# 📝 Funkcija za pisanje vektora (niza)
+# Writes a vector to a file, one value per line
 def write_vector(foldername, filename, vector):
     os.makedirs(foldername, exist_ok=True)
     path = os.path.join(foldername, filename)
     with open(path, 'a') as f:
         for val in vector:
             f.write(f"{val}\n")
-    print(f"✅ Upisano: {path}")
-    
+    print(f" Written to: {path}")
+
 
 def write_matrix_rowwise_bottom_to_top(foldername, filename, matrix):
     """
-    Upisuje redove matrice od poslednjeg ka prvom, po kolonama (sleva nadesno),
-    i snima u fajl u zadatom folderu.
+    Writes matrix rows starting from the last row to the first,
+    storing elements left to right within each row.
     """
     rows, cols = matrix.shape
     output = []
@@ -43,30 +44,26 @@ def write_matrix_rowwise_bottom_to_top(foldername, filename, matrix):
         for col in range(cols):
             output.append(matrix[row][col])
 
-    # Puna putanja
     full_path = os.path.join(foldername, filename)
 
     with open(full_path, 'a') as f:
         for val in output:
             f.write(f"{val}\n")
-    # # Snimi podatke
-    # np.savetxt(full_path, output, fmt="%d")
 
 
-
-
-# ✅ OBRIŠI FAJLOVE NA POČETKU
+# Clear output files at the beginning
 for fname in ["A.txt", "B.txt", "C.txt"]:
     full_path = os.path.join(folder, fname)
     with open(full_path, 'w') as f:
         if fname in ["A.txt", "B.txt"]:
-            f.write(f"{K}\n")  # upiši broj K kao prvu liniju
+            f.write(f"{K}\n")  # store K as the first line
+
 
 for i in range(K):
-    # Primer poziva:
     A = generate_random_matrix()
     B = generate_random_matrix()
 
+    # Example matrices for manual testing
     # A = np.array([
     #     [10, 20, 30],
     #     [40, 50, 60],
@@ -79,22 +76,19 @@ for i in range(K):
     #     [7, 8, 9]
     # ])
 
-
-
-
-    # 🟡 C je sada vektor od 3 vrednosti: skalari po kolonama
+    # C is a vector containing the dot product of corresponding columns
     C = np.zeros(M, dtype=int)
     for col in range(M):
-        C[col] = np.dot(A[:, col], B[:, col])  # skalarni proizvod kolone A i B
+        C[col] = np.dot(A[:, col], B[:, col])
+
     print("A =\n", A)
     print("B =\n", B)
     print("C =\n", C)
 
-    # ✅ Upis u fajlove
+    # Write generated data to files
     write_matrix_columnwise("C:/Vivado/Systolic_Array", "A.txt", A)
     write_matrix_rowwise_bottom_to_top("C:/Vivado/Systolic_Array", "B.txt", B)
     write_vector("C:/Vivado/Systolic_Array", "C.txt", C)
 
-    #write_vector("C", "C.txt", C)
-    print("Putanja do A.txt:", os.path.abspath("A/A.txt"))
-    print(" Zavrseno.")
+    print("Path to A.txt:", os.path.abspath("A/A.txt"))
+    print("Done.")

@@ -196,14 +196,7 @@ module systolic_array_tb;
             ready_i <= $random(seed) % 2;  
         else if (data_read_single == 1)
             ready_i <= $random(seed) % 2;
-
-            
-//         //Generating ready signal
-//        if (ctrl_i == 0)
-//            ctrl_i <= $random(seed) % 2;  
-//        else if (data_read_single == 1)
-//            ctrl_i <= $random(seed) % 2;    
-        
+  
 
         valid_o_dly <= valid_o;
         
