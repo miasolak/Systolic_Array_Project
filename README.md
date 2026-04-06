@@ -23,9 +23,9 @@ The basic cell of the array is the Processing Element (PE). It consists of three
 ### `systolic_array.v`
 The top-level systolic array module represents the functional unit that connects all system components into a single architecture. It integrates:
 
-Processing Elements (PEs) that perform the basic arithmetic operations
-Control logic that manages the overall system behavior
-Internal interconnection signals required to connect all modules together
+- Processing Elements (PEs) that perform the basic arithmetic operations
+- Control logic that manages the overall system behavior
+- Internal interconnection signals required to connect all modules together
 
 ### `control_logic.v`
 The control logic is implemented as a finite state machine (FSM) and consists of four phases. The FSM module contains four states that describe all operating phases of the systolic array: Idle, Load_AB, Wait, and Load_X.
