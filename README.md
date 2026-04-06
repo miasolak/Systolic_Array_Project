@@ -115,8 +115,7 @@ After the input data is loaded, the next phase is processing. Valid output resul
 
 ## Future Improvements
 
-- Support for larger matrix sizes
-- AXI Stream / ready-valid interface support
+- AXI Stream / full handshake protocol
 - DMA and processor integration
 - FPGA implementation and testing
 
