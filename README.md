@@ -120,6 +120,3 @@ After the input data is loaded, the next phase is processing. Valid output resul
 - DMA and processor integration
 - FPGA implementation and testing
 
-## Conclusion
-
-This project demonstrates a systolic array-based matrix multiplier in Verilog, with focus on modularity, scalability, and verification. It provides a strong foundation for further work in FPGA design and hardware acceleration.
