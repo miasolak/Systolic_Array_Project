@@ -1,4 +1,4 @@
-# Systolic Array for Matrix Multiplication
+# Systolic Array 
 
 This project implements a parameterized **systolic array architecture** for matrix multiplication in **Verilog HDL**. The design focuses on modular processing elements, coordinated control logic, and structured data flow, with verification through simulation.
 
